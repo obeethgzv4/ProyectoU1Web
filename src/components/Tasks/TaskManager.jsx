@@ -10,6 +10,7 @@ export default function TaskManager() {
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(null)
     const [filter, setFilter] = useState('all')
+    const [editingTask, setEditingTask] = useState(null) // { id, title, description }
 
     useEffect(() => {
         fetchTasks()
@@ -57,6 +58,29 @@ export default function TaskManager() {
         setUpdating(null)
     }
 
+    const startEditing = (task) => {
+        setEditingTask({ ...task })
+    }
+
+    const saveEdit = async () => {
+        if (!editingTask.title.trim()) return
+        setUpdating(editingTask.id)
+        const { error } = await supabase
+            .from('tasks')
+            .update({
+                title: editingTask.title,
+                description: editingTask.description
+            })
+            .eq('id', editingTask.id)
+
+        if (!error) setEditingTask(null)
+        setUpdating(null)
+    }
+
+    const cancelEditing = () => {
+        setEditingTask(null)
+    }
+
     const onDragEnd = async (result) => {
         if (!result.destination) return
         const items = Array.from(tasks)
@@ -96,10 +120,7 @@ export default function TaskManager() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'minmax(350px, 1fr) 2fr', gap: '2.5rem', alignItems: 'start' }}>
 
-                    {/* Left Column: Stats & Add Task */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-
-                        {/* Bento Stats */}
                         <div className="glass" style={{ padding: '2rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div style={{ gridColumn: 'span 2', marginBottom: '1rem' }}>
                                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: '600', letterSpacing: '0.1em' }}>ESTADO GLOBAL</p>
@@ -115,7 +136,6 @@ export default function TaskManager() {
                             </div>
                         </div>
 
-                        {/* Create Task Form */}
                         <div className="glass" style={{ padding: '2rem' }}>
                             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem', fontWeight: '600' }}>Nueva Tarea</h3>
                             <form onSubmit={addTask}>
@@ -132,27 +152,12 @@ export default function TaskManager() {
                         </div>
                     </div>
 
-                    {/* Right Column: Task List */}
                     <div className="glass" style={{ padding: '2rem', minHeight: '600px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '1.25rem', fontWeight: '600' }}>Tus Tareas</h3>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 {['all', 'pending', 'completed'].map(f => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setFilter(f)}
-                                        style={{
-                                            padding: '0.5rem 1rem',
-                                            borderRadius: '10px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: '600',
-                                            background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                                            color: filter === f ? 'white' : 'var(--text-secondary)',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
+                                    <button key={f} onClick={() => setFilter(f)} style={{ padding: '0.5rem 1rem', borderRadius: '10px', fontSize: '0.75rem', fontWeight: '600', background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)', color: filter === f ? 'white' : 'var(--text-secondary)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
                                         {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Completas'}
                                     </button>
                                 ))}
@@ -167,7 +172,6 @@ export default function TaskManager() {
                                             filteredTasks.length === 0 ? (
                                                 <div style={{ textAlign: 'center', padding: '5rem 2rem', color: 'var(--text-secondary)' }}>
                                                     <p style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>✨ Todo despejado</p>
-                                                    <p style={{ fontSize: '0.875rem' }}>No hay tareas que coincidan con el filtro actual.</p>
                                                 </div>
                                             ) : (
                                                 filteredTasks.map((task, index) => (
@@ -181,17 +185,45 @@ export default function TaskManager() {
                                                                     marginBottom: '1rem',
                                                                     opacity: updating === task.id ? 0.5 : 1,
                                                                     background: snapshot.isDragging ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)',
-                                                                    border: snapshot.isDragging ? '1px solid var(--primary)' : '1px solid var(--glass-border)'
+                                                                    border: snapshot.isDragging ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
+                                                                    flexDirection: editingTask?.id === task.id ? 'column' : 'row',
+                                                                    alignItems: editingTask?.id === task.id ? 'stretch' : 'center'
                                                                 }}
                                                             >
-                                                                <div className={`checkbox-custom ${task.completed ? 'checked' : ''}`} onClick={() => toggleTask(task)}>
-                                                                    {task.completed && <span style={{ color: 'white', fontSize: '10px' }}>L</span>}
-                                                                </div>
-                                                                <div style={{ flex: 1 }}>
-                                                                    <h4 style={{ fontSize: '1.1rem', fontWeight: '500', textDecoration: task.completed ? 'line-through' : 'none', color: task.completed ? 'var(--text-secondary)' : 'white' }}>{task.title}</h4>
-                                                                    {task.description && <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{task.description}</p>}
-                                                                </div>
-                                                                <button onClick={() => deleteTask(task.id)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.2)', fontSize: '1rem', padding: '0.5rem', border: 'none', cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = 'var(--danger)'} onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.2)'}>✕</button>
+                                                                {editingTask?.id === task.id ? (
+                                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+                                                                        <input
+                                                                            className="floating-input"
+                                                                            value={editingTask.title}
+                                                                            onChange={e => setEditingTask({ ...editingTask, title: e.target.value })}
+                                                                            style={{ padding: '0.75rem', fontSize: '1rem' }}
+                                                                        />
+                                                                        <textarea
+                                                                            className="floating-input"
+                                                                            value={editingTask.description}
+                                                                            onChange={e => setEditingTask({ ...editingTask, description: e.target.value })}
+                                                                            style={{ minHeight: '80px', padding: '0.75rem', fontSize: '0.875rem' }}
+                                                                        />
+                                                                        <div style={{ display: 'flex', gap: '0.5rem', alignSelf: 'flex-end' }}>
+                                                                            <button onClick={cancelEditing} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'transparent', color: 'white', cursor: 'pointer' }}>Cancelar</button>
+                                                                            <button onClick={saveEdit} style={{ padding: '0.5rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'white', fontWeight: '600', cursor: 'pointer' }}>Guardar</button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className={`checkbox-custom ${task.completed ? 'checked' : ''}`} onClick={() => toggleTask(task)}>
+                                                                            {task.completed && <span style={{ color: 'white', fontSize: '10px' }}>L</span>}
+                                                                        </div>
+                                                                        <div style={{ flex: 1 }} onClick={() => startEditing(task)}>
+                                                                            <h4 style={{ fontSize: '1.1rem', fontWeight: '500', textDecoration: task.completed ? 'line-through' : 'none', color: task.completed ? 'var(--text-secondary)' : 'white' }}>{task.title}</h4>
+                                                                            {task.description && <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>{task.description}</p>}
+                                                                        </div>
+                                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                            <button onClick={() => startEditing(task)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.2)', fontSize: '0.875rem', border: 'none', cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = 'var(--accent-blue)'} onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.2)'}>✏️</button>
+                                                                            <button onClick={() => deleteTask(task.id)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.2)', fontSize: '1rem', border: 'none', cursor: 'pointer' }} onMouseEnter={e => e.target.style.color = 'var(--danger)'} onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.2)'}>✕</button>
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </Draggable>
@@ -202,10 +234,6 @@ export default function TaskManager() {
                                 )}
                             </Droppable>
                         </DragDropContext>
-
-                        <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2rem' }}>
-                            💡 Mantén presionado y arrastra para reordenar
-                        </p>
                     </div>
                 </div>
             </div>
