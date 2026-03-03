@@ -26,9 +26,7 @@ export default function TaskManager() {
         const { data, error } = await supabase
             .from('tasks')
             .select('*')
-            .order('position', { ascending: true }) // Sort by position
-            .order('created_at', { ascending: false })
-
+            .order('position', { ascending: true })
         if (!error) setTasks(data)
         setLoading(false)
     }
@@ -37,26 +35,19 @@ export default function TaskManager() {
         e.preventDefault()
         if (!newTask.title.trim()) return
         setUpdating('adding')
-
-        // Find highest position to add at the end
         const lastPos = tasks.length > 0 ? Math.max(...tasks.map(t => t.position || 0)) : 0
-
         const { error } = await supabase.from('tasks').insert([{
             ...newTask,
             user_id: user.id,
             position: lastPos + 1
         }])
-
         if (!error) setNewTask({ title: '', description: '' })
         setUpdating(null)
     }
 
     const toggleTask = async (task) => {
         setUpdating(task.id)
-        await supabase
-            .from('tasks')
-            .update({ completed: !task.completed })
-            .eq('id', task.id)
+        await supabase.from('tasks').update({ completed: !task.completed }).eq('id', task.id)
         setUpdating(null)
     }
 
@@ -68,29 +59,12 @@ export default function TaskManager() {
 
     const onDragEnd = async (result) => {
         if (!result.destination) return
-
         const items = Array.from(tasks)
         const [reorderedItem] = items.splice(result.source.index, 1)
         items.splice(result.destination.index, 0, reorderedItem)
-
-        // Update state immediately for UX
         setTasks(items)
-
-        // Update positions in Supabase
-        // To be efficient, we only update positions for all items
-        const updates = items.map((task, index) => ({
-            id: task.id,
-            position: index,
-            user_id: user.id // Supabase batch update usually needs all required fields or handles it based on ID
-        }))
-
-        // Use a Supabase upsert or sequential updates
-        // For simplicity in this demo, we'll do sequential updates or a single call if Supabase supports it well
         for (let i = 0; i < items.length; i++) {
-            await supabase
-                .from('tasks')
-                .update({ position: i })
-                .eq('id', items[i].id)
+            await supabase.from('tasks').update({ position: i }).eq('id', items[i].id)
         }
     }
 
@@ -107,178 +81,91 @@ export default function TaskManager() {
     }
 
     return (
-        <div className="dashboard-container">
-            <header className="header-nav">
-                <div>
-                    <h1 style={{ fontSize: '1.25rem', fontWeight: '700' }}>CloudTasks</h1>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user.email}</p>
-                </div>
-                <button
-                    onClick={signOut}
-                    style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: 'var(--danger)',
-                        fontSize: '0.8125rem',
-                        fontWeight: '600',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '6px',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.2)'}
-                    onMouseLeave={(e) => e.target.style.background = 'rgba(239, 68, 68, 0.1)'}
-                >
-                    Cerrar sesión
-                </button>
-            </header>
-
-            {/* Stats Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '2rem' }}>
-                <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: '700' }}>{stats.total}</p>
-                </div>
-                <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pendientes</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--warning)' }}>{stats.pending}</p>
-                </div>
-                <div className="glass-card" style={{ padding: '1.25rem', textAlign: 'center' }}>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Completas</p>
-                    <p style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>{stats.completed}</p>
-                </div>
-            </div>
-
-            {/* Add Task */}
-            <div className="glass-card" style={{ padding: '1.5rem', marginBottom: '2.5rem' }}>
-                <form onSubmit={addTask}>
-                    <input
-                        placeholder="Título de la tarea..."
-                        value={newTask.title}
-                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                        style={{ marginBottom: '1rem' }}
-                        required
-                    />
-                    <textarea
-                        placeholder="Notas (opcional)"
-                        value={newTask.description}
-                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                        style={{
-                            width: '100%',
-                            background: 'var(--input-bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: '8px',
-                            padding: '0.75rem',
-                            color: 'white',
-                            fontSize: '0.875rem',
-                            minHeight: '80px',
-                            fontFamily: 'inherit',
-                            marginBottom: '1rem'
-                        }}
-                    />
-                    <button type="submit" className="btn-primary" disabled={updating === 'adding'}>
-                        {updating === 'adding' ? 'Guardando...' : 'Añadir Tarea'}
+        <>
+            <div className="mesh-bg"></div>
+            <div className="container">
+                <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem', padding: '0 1rem' }}>
+                    <div>
+                        <h1 style={{ fontSize: '2rem' }} className="text-glow">CloudTasks</h1>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>{user.email}</p>
+                    </div>
+                    <button onClick={signOut} className="glass" style={{ padding: '0.75rem 1.5rem', color: 'var(--danger)', borderRadius: '12px', fontWeight: '600', fontSize: '0.8125rem' }}>
+                        Cerrar sesión
                     </button>
-                </form>
-            </div>
+                </header>
 
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                {['all', 'pending', 'completed'].map(f => (
-                    <button
-                        key={f}
-                        onClick={() => setFilter(f)}
-                        style={{
-                            padding: '0.4rem 1rem',
-                            borderRadius: '6px',
-                            fontSize: '0.8125rem',
-                            fontWeight: '500',
-                            background: filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
-                            color: filter === f ? 'white' : 'var(--text-muted)',
-                            border: '1px solid',
-                            borderColor: filter === f ? 'var(--primary)' : 'var(--border)',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Completas'}
-                    </button>
-                ))}
-            </div>
+                {/* Bento Grid Stats */}
+                <div className="bento-grid">
+                    <div className="glass bento-item bento-main" style={{ alignItems: 'flex-start' }}>
+                        <h3 style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem' }}>SITUACIÓN ACTUAL</h3>
+                        <p style={{ fontSize: '3.5rem', fontWeight: '800' }}>{stats.pending} <span style={{ fontSize: '1rem', fontWeight: '400', color: 'var(--text-secondary)' }}>tareas pendientes</span></p>
+                    </div>
+                    <div className="glass bento-item">
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>TOTALES</p>
+                        <p style={{ fontSize: '2rem', fontWeight: '700' }}>{stats.total}</p>
+                    </div>
+                    <div className="glass bento-item">
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>COMPLETADAS</p>
+                        <p style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--success)' }}>{stats.completed}</p>
+                    </div>
+                    <div className="glass bento-item" style={{ gridColumn: 'span 2', flexDirection: 'row', gap: '1rem' }}>
+                        <button onClick={() => setFilter('all')} style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: filter === 'all' ? 'var(--primary)' : 'transparent', color: filter === 'all' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--glass-border)' }}>Todas</button>
+                        <button onClick={() => setFilter('pending')} style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: filter === 'pending' ? 'var(--primary)' : 'transparent', color: filter === 'pending' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--glass-border)' }}>Pendientes</button>
+                        <button onClick={() => setFilter('completed')} style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', background: filter === 'completed' ? 'var(--primary)' : 'transparent', color: filter === 'completed' ? 'white' : 'var(--text-secondary)', border: '1px solid var(--glass-border)' }}>Terminadas</button>
+                    </div>
+                </div>
 
-            {/* List with Drag and Drop */}
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="tasks-list">
-                    {(provided) => (
-                        <div
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}
-                            style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}
-                        >
-                            {loading ? (
-                                <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>Sincronizando...</p>
-                            ) : filteredTasks.length === 0 ? (
-                                <div className="glass-card" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-                                    No hay tareas pendientes.
+                {/* Action Area */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem', alignItems: 'start' }}>
+                    <div className="glass" style={{ padding: '2rem' }}>
+                        <h3 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Nueva Tarea</h3>
+                        <form onSubmit={addTask}>
+                            <div className="floating-input-group">
+                                <input placeholder="Título" className="floating-input" value={newTask.title} onChange={e => setNewTask({ ...newTask, title: e.target.value })} required />
+                            </div>
+                            <div className="floating-input-group">
+                                <textarea placeholder="Descripción" className="floating-input" style={{ minHeight: '100px', resize: 'none' }} value={newTask.description} onChange={e => setNewTask({ ...newTask, description: e.target.value })} />
+                            </div>
+                            <button type="submit" className="btn-premium" disabled={updating === 'adding'}>Añadir</button>
+                        </form>
+                    </div>
+
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId="tasks-list">
+                            {(provided) => (
+                                <div {...provided.droppableProps} ref={provided.innerRef}>
+                                    {loading ? <p style={{ textAlign: 'center' }}>Cargando...</p> :
+                                        filteredTasks.map((task, index) => (
+                                            <Draggable key={task.id} draggableId={task.id} index={index}>
+                                                {(provided, snapshot) => (
+                                                    <div
+                                                        ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
+                                                        className="glass task-card"
+                                                        style={{
+                                                            ...provided.draggableProps.style,
+                                                            opacity: updating === task.id ? 0.5 : 1,
+                                                            background: snapshot.isDragging ? 'rgba(255,255,255,0.1)' : 'var(--glass-bg)'
+                                                        }}
+                                                    >
+                                                        <div className={`checkbox-custom ${task.completed ? 'checked' : ''}`} onClick={() => toggleTask(task)}>
+                                                            {task.completed && <span style={{ color: 'white', fontSize: '12px' }}>✓</span>}
+                                                        </div>
+                                                        <div style={{ flex: 1 }}>
+                                                            <h4 style={{ fontSize: '1.125rem', textDecoration: task.completed ? 'line-through' : 'none', color: task.completed ? 'var(--text-secondary)' : 'white' }}>{task.title}</h4>
+                                                            {task.description && <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{task.description}</p>}
+                                                        </div>
+                                                        <button onClick={() => deleteTask(task.id)} style={{ background: 'transparent', color: 'var(--text-secondary)', fontSize: '1.25rem', padding: '0.5rem' }}>✕</button>
+                                                    </div>
+                                                )}
+                                            </Draggable>
+                                        ))}
+                                    {provided.placeholder}
                                 </div>
-                            ) : (
-                                filteredTasks.map((task, index) => (
-                                    <Draggable key={task.id} draggableId={task.id} index={index}>
-                                        {(provided, snapshot) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
-                                                className="glass-card"
-                                                style={{
-                                                    padding: '1rem 1.25rem',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '1.25rem',
-                                                    marginBottom: 0,
-                                                    opacity: updating === task.id ? 0.6 : 1,
-                                                    cursor: 'grab',
-                                                    background: snapshot.isDragging ? 'var(--border)' : 'var(--card-bg)',
-                                                    boxShadow: snapshot.isDragging ? '0 10px 15px -3px rgba(0, 0, 0, 0.4)' : 'none',
-                                                    ...provided.draggableProps.style
-                                                }}
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={task.completed}
-                                                    onChange={() => toggleTask(task)}
-                                                    onClick={(e) => e.stopPropagation()} // Prevent drag start when clicking checkbox
-                                                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--primary)' }}
-                                                />
-                                                <div style={{ flex: 1 }}>
-                                                    <h3 style={{ fontSize: '0.9375rem', fontWeight: '500', textDecoration: task.completed ? 'line-through' : 'none', color: task.completed ? 'var(--text-muted)' : 'var(--text-main)' }}>
-                                                        {task.title}
-                                                    </h3>
-                                                    {task.description && <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{task.description}</p>}
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation() // Prevent drag start
-                                                        deleteTask(task.id)
-                                                    }}
-                                                    style={{ background: 'transparent', color: 'var(--text-muted)', opacity: 0.5, fontSize: '1rem', fontWeight: 'bold' }}
-                                                    onMouseEnter={(e) => e.target.style.opacity = 1}
-                                                    onMouseLeave={(e) => e.target.style.opacity = 0.5}
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))
                             )}
-                            {provided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-            </DragDropContext>
-
-            <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2rem' }}>
-                💡 Arrastra las tareas para cambiar su orden
-            </p>
-        </div>
+                        </Droppable>
+                    </DragDropContext>
+                </div>
+            </div>
+        </>
     )
 }

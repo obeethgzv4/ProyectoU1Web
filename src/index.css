@@ -1,19 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
   --primary: #f97316;
-  /* Orange 500 */
-  --primary-hover: #ea580c;
-  /* Orange 600 */
-  --bg: #ffffff;
-  --card-bg: #f8fafc;
-  --text-main: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-  --success: #10b981;
-  --warning: #f59e0b;
+  --primary-glow: rgba(249, 115, 22, 0.4);
+  --bg-deep: #020617;
+  --glass-bg: rgba(15, 23, 42, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent-blue: #38bdf8;
+  --accent-purple: #818cf8;
   --danger: #ef4444;
-  --input-bg: #ffffff;
+  --success: #10b981;
 }
 
 * {
@@ -23,135 +21,185 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: var(--bg);
-  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
   min-height: 100vh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
 
+/* Dynamic Mesh Background */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background:
+    radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(249, 115, 22, 0.05) 0px, transparent 50%);
+  filter: blur(80px);
+  animation: mesh-move 20s ease infinite alternate;
+}
+
+@keyframes mesh-move {
+  0% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1.2) translate(5%, 5%);
+  }
+}
+
 .container {
-  max-width: 450px;
-  width: 90%;
-  margin: auto;
+  max-width: 1100px;
+  width: 95%;
+  margin: 0 auto;
   padding: 2rem 0;
 }
 
-.glass-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+/* Premium Glassmorphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: auto;
+  gap: 1.5rem;
   margin-bottom: 2rem;
-  text-align: center;
-  color: var(--text-main);
 }
 
-label {
-  display: block;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
+.bento-item {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-input {
+.bento-item:hover {
+  transform: translateY(-5px);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.bento-main {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-glow {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+/* Innovative Inputs */
+.floating-input-group {
+  position: relative;
+  margin-bottom: 1.5rem;
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-main);
-  font-size: 0.9375rem;
-  transition: all 0.2s ease;
 }
 
-input:focus {
+.floating-input {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  color: white;
+  font-size: 1rem;
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  transition: all 0.3s ease;
 }
 
-.btn-primary {
-  width: 100%;
-  padding: 0.75rem;
-  background: var(--primary);
+.floating-input:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+}
+
+.btn-premium {
+  padding: 1.25rem 2rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #ea580c 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 1rem;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.footer-text {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.875rem;
-  color: var(--text-muted);
-}
-
-.link {
-  color: var(--primary);
-  cursor: pointer;
-  font-weight: 600;
-  text-decoration: none;
-  margin-left: 0.5rem;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-/* Password Strength Indicator */
-.strength-meter {
-  height: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 20px -5px var(--primary-glow);
   width: 100%;
-  background: var(--border);
-  border-radius: 2px;
-  margin-top: 0.5rem;
-  overflow: hidden;
 }
 
-.strength-bar {
-  height: 100%;
-  transition: width 0.3s ease, background-color 0.3s ease;
+.btn-premium:hover {
+  transform: scale(1.02);
+  box-shadow: 0 15px 30px -5px var(--primary-glow);
 }
 
-.error-message {
-  color: var(--danger);
-  font-size: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-/* Dashboard styles */
-.dashboard-container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.header-nav {
+/* Task Card Style */
+.task-card {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 2.5rem;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+  cursor: grab;
+}
+
+.task-card:active {
+  cursor: grabbing;
+}
+
+.checkbox-custom {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkbox-custom.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Auth Layout */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  padding: 3rem;
+  text-align: center;
 }

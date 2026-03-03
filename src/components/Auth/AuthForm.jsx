@@ -12,7 +12,6 @@ export default function AuthForm() {
 
     const { signIn, signUp } = useAuth()
 
-    // Calculate password strength
     useEffect(() => {
         let score = 0
         if (password.length > 6) score++
@@ -24,116 +23,96 @@ export default function AuthForm() {
     }, [password])
 
     const getStrengthColor = () => {
-        if (strength <= 2) return 'var(--danger)'
-        if (strength <= 3) return 'var(--warning)'
-        return 'var(--success)'
+        if (strength <= 2) return '#ef4444'
+        if (strength <= 3) return '#f59e0b'
+        return '#10b981'
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError(null)
-
         if (!isLogin && password !== confirmPassword) {
             setError('Las contraseñas no coinciden')
             return
         }
-
-        if (!isLogin && strength < 3) {
-            setError('La contraseña es demasiado débil')
-            return
-        }
-
         setLoading(true)
-
         const { error } = isLogin
             ? await signIn(email, password)
             : await signUp(email, password)
-
-        if (error) setError(forceFriendlyError(error.message))
+        if (error) setError(error.message)
         setLoading(false)
     }
 
-    const forceFriendlyError = (msg) => {
-        if (msg.includes('rate limit')) return 'Demasiados intentos. Espera un minuto.'
-        if (msg.includes('Invalid login')) return 'Email o contraseña incorrectos.'
-        if (msg.includes('confirmed')) return 'Por favor, confirma tu correo electrónico.'
-        return msg
-    }
-
     return (
-        <div className="container">
-            <div className="glass-card">
-                <h2>{isLogin ? 'Iniciar Sesión' : 'Nueva Cuenta'}</h2>
+        <>
+            <div className="mesh-bg"></div>
+            <div className="auth-wrapper">
+                <div className="glass auth-card">
+                    <h2 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }} className="text-glow">
+                        {isLogin ? 'Bienvenido' : 'Explora'}
+                    </h2>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '2.5rem' }}>
+                        {isLogin ? 'Ingresa a tu espacio de trabajo' : 'Comienza tu viaje hoy mismo'}
+                    </p>
 
-                <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '1.25rem' }}>
-                        <label>Correo Electrónico</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="ejemplo@correo.com"
-                            required
-                        />
-                    </div>
-
-                    <div style={{ marginBottom: isLogin ? '1.5rem' : '1.25rem' }}>
-                        <label>Contraseña</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                        {!isLogin && password && (
-                            <div style={{ marginTop: '0.5rem' }}>
-                                <div className="strength-meter">
-                                    <div
-                                        className="strength-bar"
-                                        style={{
-                                            width: `${(strength / 5) * 100}%`,
-                                            backgroundColor: getStrengthColor()
-                                        }}
-                                    ></div>
-                                </div>
-                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                                    Seguridad: {strength <= 2 ? 'Baja' : strength <= 4 ? 'Media' : 'Alta'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    {!isLogin && (
-                        <div style={{ marginBottom: '1.5rem' }}>
-                            <label>Confirmar Contraseña</label>
+                    <form onSubmit={handleSubmit}>
+                        <div className="floating-input-group">
                             <input
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="••••••••"
+                                className="floating-input"
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Correo Electrónico"
                                 required
                             />
                         </div>
-                    )}
 
-                    {error && <p className="error-message">{error}</p>}
+                        <div className="floating-input-group">
+                            <input
+                                className="floating-input"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Contraseña"
+                                required
+                            />
+                            {!isLogin && password && (
+                                <div style={{ marginTop: '0.75rem', padding: '0 0.5rem' }}>
+                                    <div className="strength-meter">
+                                        <div className="strength-bar" style={{ width: `${(strength / 5) * 100}%`, backgroundColor: getStrengthColor() }}></div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Procesando...' : (isLogin ? 'Entrar' : 'Crear Cuenta')}
-                    </button>
-                </form>
+                        {!isLogin && (
+                            <div className="floating-input-group">
+                                <input
+                                    className="floating-input"
+                                    type="password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirmar Contraseña"
+                                    required
+                                />
+                            </div>
+                        )}
 
-                <p className="footer-text">
-                    {isLogin ? '¿Aún no tienes cuenta?' : '¿Ya tienes cuenta?'}
-                    <span className="link" onClick={() => {
-                        setIsLogin(!isLogin)
-                        setError(null)
-                    }}>
-                        {isLogin ? 'Regístrate aquí' : 'Inicia sesión'}
-                    </span>
-                </p>
+                        {error && <p style={{ color: 'var(--danger)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>{error}</p>}
+
+                        <button type="submit" className="btn-premium" disabled={loading}>
+                            {loading ? 'Sincronizando...' : (isLogin ? 'Acceder' : 'Registrarme')}
+                        </button>
+                    </form>
+
+                    <p style={{ marginTop: '2rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                        {isLogin ? '¿Nuevo aquí?' : '¿Ya eres miembro?'}
+                        <span className="link" style={{ fontSize: '0.875rem' }} onClick={() => setIsLogin(!isLogin)}>
+                            {isLogin ? 'Crea una cuenta' : 'Inicia sesión'}
+                        </span>
+                    </p>
+                </div>
             </div>
-        </div>
+        </>
     )
 }
