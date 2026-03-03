@@ -28,10 +28,13 @@ export const AuthProvider = ({ children }) => {
 
     const signUp = (email, password) => supabase.auth.signUp({ email, password })
     const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password })
+    const resetPassword = (email) => supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+    })
     const signOut = () => supabase.auth.signOut()
 
     return (
-        <AuthContext.Provider value={{ user, signUp, signIn, signOut, loading }}>
+        <AuthContext.Provider value={{ user, signUp, signIn, resetPassword, signOut, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     )
