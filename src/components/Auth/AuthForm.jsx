@@ -10,7 +10,7 @@ export default function AuthForm() {
     const [loading, setLoading] = useState(false)
     const [strength, setStrength] = useState(0)
 
-    const { signIn, signUp, signInWithGoogle } = useAuth()
+    const { signIn, signUp } = useAuth()
 
     // Calculate password strength
     useEffect(() => {
@@ -123,38 +123,6 @@ export default function AuthForm() {
                         {loading ? 'Procesando...' : (isLogin ? 'Entrar' : 'Crear Cuenta')}
                     </button>
                 </form>
-
-                <div style={{ margin: '1.5rem 0', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>O continúa con</span>
-                    <div style={{ flex: 1, height: '1px', background: 'var(--border)' }}></div>
-                </div>
-
-                <button
-                    onClick={() => signInWithGoogle()}
-                    className="btn-secondary"
-                    style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        background: 'white',
-                        border: '1px solid var(--border)',
-                        borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        cursor: 'pointer',
-                        fontSize: '0.9375rem',
-                        fontWeight: '500',
-                        color: 'var(--text-main)',
-                        transition: 'background 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.target.style.background = '#f8fafc'}
-                    onMouseLeave={(e) => e.target.style.background = 'white'}
-                >
-                    <img src="https://www.google.com/favicon.ico" alt="Google" style={{ width: '18px', height: '18px' }} />
-                    Google
-                </button>
 
                 <p className="footer-text">
                     {isLogin ? '¿Aún no tienes cuenta?' : '¿Ya tienes cuenta?'}
